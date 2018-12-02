@@ -18,8 +18,7 @@ void serializer::marshal(const ::string_view &txt, const std::vector<size_t> &sa
 
     WATCH(lz77::compress(txt, output));
 
-    ::string_view sa_sv = ::string_view::__unsafe_new(reinterpret_cast<const char *>(sa.data()), len * MULTIPLIER);
-    WATCH(lz77::compress(sa_sv, output));
+    WATCH(output.write(reinterpret_cast<const char *>(sa.data()), len * MULTIPLIER));
 
     ::string_view l_lcp_sv = ::string_view::__unsafe_new(reinterpret_cast<const char *>(l_lcp.data()), len * MULTIPLIER);
     WATCH(lz77::compress(l_lcp_sv, output));
@@ -38,23 +37,18 @@ char *serializer::unmarshal(std::istream &input, std::vector<size_t> &sa, std::v
     input.read(reinterpret_cast<char *>(&len), sizeof(size_t));
 
     char *txt = new char[len + 1];
-//    input.read(txt, len * sizeof(char));
     txt[len] = '\0';
     ::string_view txt_sv = ::string_view::__unsafe_new(txt, len);
     WATCH(lz77::decompress(input, txt_sv));
 
     sa.resize(len);
-//    input.read(reinterpret_cast<char *>(sa.data()), len * sizeof(size_t));
-    ::string_view sa_sv = ::string_view::__unsafe_new(reinterpret_cast<char *>(sa.data()), len * MULTIPLIER);
-    WATCH(lz77::decompress(input, sa_sv));
+    WATCH(input.read(reinterpret_cast<char *>(sa.data()), len * MULTIPLIER));
 
     l_lcp.resize(len);
-//    input.read(reinterpret_cast<char *>(l_lcp.data()), len * sizeof(size_t));
     ::string_view l_lcp_sv = ::string_view::__unsafe_new(reinterpret_cast<char *>(l_lcp.data()), len * MULTIPLIER);
     WATCH(lz77::decompress(input, l_lcp_sv));
 
     r_lcp.resize(len);
-//    input.read(reinterpret_cast<char *>(r_lcp.data()), len * sizeof(size_t));
     ::string_view r_lcp_sv = ::string_view::__unsafe_new(reinterpret_cast<char *>(r_lcp.data()), len * MULTIPLIER);
     WATCH(lz77::decompress(input, r_lcp_sv));
 
