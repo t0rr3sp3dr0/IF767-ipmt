@@ -21,7 +21,7 @@ inline void suffix_array::init_ranking(std::vector<size_t> &v, const std::vector
     }
     std::sort(sorted.begin(), sorted.end());
 
-    size_t ranking = 1;
+    size_t ranking = 0;
     T *prev = nullptr;
     for (auto &e : sorted) {
         if (prev && e.first != *prev)
