@@ -46,7 +46,7 @@ public:
 
     bool operator>=(const string_view &rhs) const;
 
-    friend std::ostream &operator<<(std::ostream &os, const string_view &view);
+    friend std::ostream &operator<<(std::ostream &os, const string_view &sv);
 
     const char &operator[](size_t index) const;
 

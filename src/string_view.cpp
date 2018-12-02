@@ -60,9 +60,9 @@ bool string_view::operator>=(const string_view &rhs) const {
     return !(*this < rhs);
 }
 
-std::ostream &operator<<(std::ostream &os, const string_view &view) {
-    for (size_t i = 0; i < view.size; ++i)
-        os << view.data[i];
+std::ostream &operator<<(std::ostream &os, const string_view &sv) {
+    for (auto &c : sv)
+        os << c;
     return os;
 }
 
