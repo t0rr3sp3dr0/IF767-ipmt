@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 
+#include "dc3.h"
 #include "def.h"
 #include "lz77.hpp"
 #include "suffix_array.h"
@@ -16,7 +17,7 @@ int main(int argc, char *argv[]) {
         auto idx = std::string(argv[1]) + ".idx";
         auto txt = (std::stringstream() << std::ifstream(argv[1]).rdbuf()).str();
 
-        WATCH(suffix_array sa(txt));
+        WATCH(dc3 sa(txt));
 
         std::fstream output(idx, std::ios::out | std::ios::binary | std::ios::trunc);
         WATCH(sa.marshal(output));
