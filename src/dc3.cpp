@@ -6,15 +6,7 @@
 #include "serializer.h"
 #include "watch.h"
 
-inline constexpr bool leq(size_t a1, size_t a2, size_t b1, size_t b2) {
-    return a1 < b1 || (a1 == b1 && a2 <= b2);
-}
-
-inline constexpr bool leq(size_t a1, size_t a2, size_t a3, size_t b1, size_t b2, size_t b3) {
-    return a1 < b1 || (a1 == b1 && leq(a2, a3, b2, b3));
-}
-
-inline void radix_sort(const std::vector<size_t> &in, std::vector<size_t> &sorted, const size_t *txt, size_t len, size_t alphabet) {
+inline void dc3::radix_sort(const std::vector<size_t> &in, std::vector<size_t> &sorted, const size_t *txt, size_t len, size_t alphabet) {
     std::vector<size_t> v(alphabet + 1);
 
     for (size_t i = 0; i < len; i++)
@@ -52,9 +44,9 @@ void dc3::init_suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t l
         if (i % 3 != 0)
             txt12[j++] = i;
 
-    radix_sort(txt12, sa12, txt + 2, n02, alphabet);
-    radix_sort(sa12, txt12, txt + 1, n02, alphabet);
-    radix_sort(txt12, sa12, txt, n02, alphabet);
+    dc3::radix_sort(txt12, sa12, txt + 2, n02, alphabet);
+    dc3::radix_sort(sa12, txt12, txt + 1, n02, alphabet);
+    dc3::radix_sort(txt12, sa12, txt, n02, alphabet);
 
     auto c0 = static_cast<size_t>(-1);
     auto c1 = static_cast<size_t>(-1);
@@ -74,7 +66,7 @@ void dc3::init_suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t l
     }
 
     if (abc < n02) {
-        init_suffix_array(sa12, txt12.data(), n02, abc);
+        dc3::init_suffix_array(sa12, txt12.data(), n02, abc);
         for (size_t i = 0; i < n02; ++i)
             txt12[sa12[i]] = i + 1;
     } else
@@ -84,12 +76,12 @@ void dc3::init_suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t l
     for (size_t i = 0, j = 0; i < n02; ++i)
         if (sa12[i] < n0)
             txt0[j++] = 3 * sa12[i];
-    radix_sort(txt0, sa0, txt, n0, alphabet);
+    dc3::radix_sort(txt0, sa0, txt, n0, alphabet);
 
     for (size_t p = 0, t = n0 - n1, k = 0; k < len; ++k) {
         size_t i = sa12[t] < n0 ? sa12[t] * 3 + 1 : (sa12[t] - n0) * 3 + 2;
         size_t j = sa0[p];
-        if (sa12[t] < n0 ? leq(txt[i], txt12[sa12[t] + n0], txt[j], txt12[j / 3]) : leq(txt[i], txt[i + 1], txt12[sa12[t] - n0 + 1], txt[j], txt[j + 1], txt12[j / 3 + n0])) {
+        if (sa12[t] < n0 ? std::make_tuple(txt[i], txt12[sa12[t] + n0]) <= std::make_tuple(txt[j], txt12[j / 3]) : std::make_tuple(txt[i], txt[i + 1], txt12[sa12[t] - n0 + 1]) <= std::make_tuple(txt[j], txt[j + 1], txt12[j / 3 + n0])) {
             sa[k] = i;
             ++t;
             if (t == n02)
@@ -160,8 +152,8 @@ inline void dc3::_init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r
     for (size_t i = h; i < r; ++i)
         r_lcp[h] = std::min(h_lcp[i], r_lcp[h]);
 
-    _init_lr_lcp(l_lcp, r_lcp, h_lcp, l, h);
-    _init_lr_lcp(l_lcp, r_lcp, h_lcp, h, r);
+    dc3::_init_lr_lcp(l_lcp, r_lcp, h_lcp, l, h);
+    dc3::_init_lr_lcp(l_lcp, r_lcp, h_lcp, h, r);
 }
 
 inline void dc3::init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &h_lcp, size_t n) {
@@ -171,7 +163,7 @@ inline void dc3::init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_
     size_t l = 0;
     size_t r = n - 1;
 
-    _init_lr_lcp(l_lcp, r_lcp, h_lcp, l, r);
+    dc3::_init_lr_lcp(l_lcp, r_lcp, h_lcp, l, r);
 }
 
 dc3::dc3(const string_view &txt) : free(false), txt(txt) {

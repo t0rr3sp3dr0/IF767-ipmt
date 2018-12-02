@@ -8,6 +8,7 @@
 
 #include <climits>
 #include <iostream>
+#include <tuple>
 #include <vector>
 
 #include "def.h"
@@ -23,11 +24,11 @@ private:
 
     static constexpr size_t ALPHABET_LENGTH = UCHAR_MAX + 1;
 
-    static void init_suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t len,
-                                  size_t alphabet = dc3::ALPHABET_LENGTH);
+    static void radix_sort(const std::vector<size_t> &in, std::vector<size_t> &sorted, const size_t *txt, size_t len, size_t alphabet);
 
-    static void init_suffix_array(std::vector<size_t> &sa, const ::string_view &txt,
-                                  size_t alphabet = dc3::ALPHABET_LENGTH);
+    static void init_suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t len, size_t alphabet = dc3::ALPHABET_LENGTH);
+
+    static void init_suffix_array(std::vector<size_t> &sa, const ::string_view &txt, size_t alphabet = dc3::ALPHABET_LENGTH);
 
     static void invert_index(std::vector<size_t> &ret, const std::vector<size_t> &v);
 
