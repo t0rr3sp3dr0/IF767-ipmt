@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include "serializer.h"
+#include "watch.h"
 
 template <typename T>
 inline void suffix_array::init_ranking(std::vector<size_t> &v, const std::vector<T> &ts) {
@@ -241,9 +242,9 @@ inline size_t suffix_array::pred(const ::string_view &txt, const ::string_view &
 
 suffix_array::suffix_array(const string_view &txt) : free(false), txt(txt) {
     std::vector<std::vector<size_t>> indexes;
-    suffix_array::init_indexes(indexes, this->txt);
-    suffix_array::invert_index(this->sa, indexes[indexes.size() - 1]);
-    suffix_array::init_lr_lcp(this->l_lcp, this->r_lcp, this->sa, indexes, this->txt.length());
+    WATCH(suffix_array::init_indexes(indexes, this->txt));
+    WATCH(suffix_array::invert_index(this->sa, indexes[indexes.size() - 1]));
+    WATCH(suffix_array::init_lr_lcp(this->l_lcp, this->r_lcp, this->sa, indexes, this->txt.length()));
 }
 
 suffix_array::suffix_array(std::istream &in) : free(true) {
