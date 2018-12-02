@@ -3,6 +3,8 @@
 //
 
 #include "dc3.h"
+#include "serializer.h"
+#include "watch.h"
 
 inline constexpr bool leq(size_t a1, size_t a2, size_t b1, size_t b2) {
     return a1 < b1 || (a1 == b1 && a2 <= b2);
@@ -29,7 +31,7 @@ inline void radix_sort(const std::vector<size_t> &in, std::vector<size_t> &sorte
         sorted[v[txt[in[i]]]++] = in[i];
 }
 
-void dc3::suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t len, size_t alphabet) {
+void dc3::init_suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t len, size_t alphabet) {
     sa.resize(len + 3);
     sa[len] = sa[len + 1] = sa[len + 2] = 0;
 
@@ -72,7 +74,7 @@ void dc3::suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t len, s
     }
 
     if (abc < n02) {
-        suffix_array(sa12, txt12.data(), n02, abc);
+        init_suffix_array(sa12, txt12.data(), n02, abc);
         for (size_t i = 0; i < n02; ++i)
             txt12[sa12[i]] = i + 1;
     } else
@@ -103,15 +105,96 @@ void dc3::suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t len, s
     }
 }
 
-void dc3::suffix_array(std::vector<size_t> &sa, const ::string_view &txt, size_t alphabet) {
+inline void dc3::init_suffix_array(std::vector<size_t> &sa, const ::string_view &txt, size_t alphabet) {
     const size_t n = txt.length();
 
-    size_t a[txt.length() + 3];
-    a[n] = a[n + 1] = a[n + 2] = 0;
+    sa.resize(n);
 
+    std::vector<size_t> a(n + 3);
     size_t i = 0;
     for (auto &c : txt)
         a[i++] = static_cast<size_t>(c);
 
-    dc3::suffix_array(sa, a, n, alphabet);
+    dc3::init_suffix_array(sa, a.data(), n, alphabet);
+}
+
+inline void dc3::invert_index(std::vector<size_t> &ret, const std::vector<size_t> &v) {
+    const size_t n = v.size();
+
+    ret.resize(n);
+    for (size_t i = 0; i < n; ++i)
+        ret[v[i]] = i;
+}
+
+inline void dc3::init_h_lcp(std::vector<size_t> &h_lcp, const ::string_view &s, const std::vector<size_t> &sa, const std::vector<size_t> &inverse_sa) {
+    const size_t n = s.length();
+
+    h_lcp.resize(n);
+
+    for (size_t i = 0, j = 0; i < n; i++, j -= j > 0) {
+        size_t k = inverse_sa[i];
+        if (k == n - 1) {
+            j = 0;
+            continue;
+        }
+
+        size_t l = sa[k + 1];
+        while (i + j < n && l + j < n && s[i + j] == s[l + j])
+            j++;
+
+        h_lcp[k] = j;
+    }
+}
+
+inline void dc3::_init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &h_lcp, const size_t &l, const size_t &r) {
+    if (r - l <= 1)
+        return;
+
+    size_t h = (l + r) / 2;
+
+    l_lcp[h] = static_cast<size_t>(-1);
+    for (size_t i = l; i < h; ++i)
+        l_lcp[h] = std::min(h_lcp[i], l_lcp[h]);
+
+    r_lcp[h] = static_cast<size_t>(-1);
+    for (size_t i = h; i < r; ++i)
+        r_lcp[h] = std::min(h_lcp[i], r_lcp[h]);
+
+    _init_lr_lcp(l_lcp, r_lcp, h_lcp, l, h);
+    _init_lr_lcp(l_lcp, r_lcp, h_lcp, h, r);
+}
+
+inline void dc3::init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &h_lcp, size_t n) {
+    l_lcp.resize(n);
+    r_lcp.resize(n);
+
+    size_t l = 0;
+    size_t r = n - 1;
+
+    _init_lr_lcp(l_lcp, r_lcp, h_lcp, l, r);
+}
+
+dc3::dc3(const string_view &txt) : free(false), txt(txt) {
+    WATCH(dc3::init_suffix_array(this->sa, this->txt));
+
+    std::vector<size_t> inverse_sa;
+    WATCH(dc3::invert_index(inverse_sa, this->sa));
+
+    std::vector<size_t> h_lcp;
+    WATCH(dc3::init_h_lcp(h_lcp, this->txt, this->sa, inverse_sa));
+
+    WATCH(dc3::init_lr_lcp(this->l_lcp, this->r_lcp, h_lcp, this->txt.length()));
+}
+
+dc3::dc3(std::istream &in) : free(true) {
+    this->txt = serializer::unmarshal(in, this->sa, this->l_lcp, this->r_lcp);
+}
+
+dc3::~dc3() {
+    if (this->free)
+        delete[] this->txt.begin();
+}
+
+void dc3::marshal(std::ostream &out) const {
+    serializer::marshal(this->txt, this->sa, this->l_lcp, this->r_lcp, out);
 }
