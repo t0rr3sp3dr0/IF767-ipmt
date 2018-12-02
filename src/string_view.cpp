@@ -12,6 +12,10 @@ string_view::string_view(const char *s) : data(s), size(strlen(s)) {}
 
 string_view::string_view(const std::string &s) : data(s.c_str()), size(s.length()) {}
 
+string_view string_view::__unsafe_new(const char *data, size_t size) {
+    return string_view{data, size};
+}
+
 string_view &string_view::operator=(const char *s) {
     this->data = s;
     this->size = strlen(s);

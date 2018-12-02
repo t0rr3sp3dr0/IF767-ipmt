@@ -9,6 +9,7 @@
 #include <istream>
 #include <vector>
 
+#include "def.h"
 #include "string_view.h"
 
 class suffix_array {

@@ -6,11 +6,11 @@
 #define IPMT_LZ77_H
 
 
-#include <cstddef>
 #include <fstream>
 #include <utility>
 #include <vector>
 
+#include "def.h"
 #include "string_view.h"
 
 class lz77 {
@@ -48,7 +48,6 @@ public:
         constexpr size_t lab_len = static_cast<size_t>(1) << (LAB_BYTES << 3);
 
         const size_t n = txt.length();
-        lz77::integer_encode<sizeof(size_t)>(n, out);
 
         const size_t safe = std::min(win_len, n);
         std::string _before;
@@ -77,28 +76,32 @@ public:
     }
 
     template <size_t WIN_BYTES = 2, size_t LAB_BYTES = 1>
-    static inline ::string_view decompress(std::istream &in) {
+    static inline ::string_view decompress(std::istream &in, ::string_view &txt) {
         static_assert(WIN_BYTES > LAB_BYTES, "WIN_BYTES must be greater than LAB_BYTES");
         static_assert(LAB_BYTES > 0, "LAB_BYTES must be greater than 0");
 
         constexpr size_t win_len = static_cast<size_t>(1) << (WIN_BYTES << 3);
         constexpr size_t lab_len = static_cast<size_t>(1) << (LAB_BYTES << 3);
 
-        const size_t n = lz77::integer_decode<sizeof(size_t)>(in);
-
-        char *_txt = new char[n + 1];
-        std::fill(_txt, _txt + n + 1, ~'\0');
-        _txt[n] = '\0';
-        ::string_view txt = _txt;
+        char *_txt = const_cast<char *>(txt.begin());
+        const size_t n = txt.length();
 
         for (size_t i = 0; i < n;) {
             size_t pos = lz77::integer_decode<WIN_BYTES>(in);
             size_t len = lz77::integer_decode<LAB_BYTES>(in);
             const char c = static_cast<const char>(in.get());
 
+            if (len > 0 && pos + i + lab_len < win_len) {
+                size_t diff = std::min(win_len - pos, len);
+                std::fill(_txt + i, _txt + i + diff, '\0');
+
+                len -= diff;
+                pos += diff;
+                i += diff;
+            }
+
             if (len > 0)
                 pos += i + lab_len - win_len;
-
             while (i < pos + len) {
                 std::copy(_txt + pos, _txt + i, _txt + i);
 

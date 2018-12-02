@@ -3,9 +3,10 @@
 //
 
 #include "suffix_array.h"
-#include "serializer.h"
 
 #include <cmath>
+
+#include "serializer.h"
 
 template <typename T>
 inline void suffix_array::init_ranking(std::vector<size_t> &v, const std::vector<T> &ts) {

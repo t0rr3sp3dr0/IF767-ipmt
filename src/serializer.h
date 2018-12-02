@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include "def.h"
 #include "string_view.h"
 
 namespace serializer {

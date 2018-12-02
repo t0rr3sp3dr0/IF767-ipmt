@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 
+#include "def.h"
 #include "lz77.hpp"
 #include "suffix_array.h"
 #include "watch.h"
@@ -17,19 +18,14 @@ int main(int argc, char *argv[]) {
 
         WATCH(suffix_array sa(txt));
 
-        std::stringstream ss;
-        WATCH(sa.marshal(ss));
-
         std::fstream output(idx, std::ios::out | std::ios::binary | std::ios::trunc);
-        WATCH(lz77::compress(ss.str(), output));
+        WATCH(sa.marshal(output));
     } else {
         auto idx = argv[1];
         auto pat = argv[2];
 
         std::fstream input(idx, std::ios::in | std::ios::binary);
-        WATCH(::string_view txt = lz77::decompress(input));
-
-        WATCH(suffix_array sa(txt));
+        WATCH(suffix_array sa(input));
 
 //        std::vector<size_t> occ;
 //        sa.find(occ, pat);

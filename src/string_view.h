@@ -6,9 +6,10 @@
 #define IPMT_STRING_VIEW_H
 
 
-#include <cstddef>
-#include <string>
 #include <ostream>
+#include <string>
+
+#include "def.h"
 
 class string_view {
 private:
@@ -29,6 +30,8 @@ public:
 #pragma ide diagnostic ignored "google-explicit-constructor"
     string_view(const std::string &s);
 #pragma clang diagnostic pop
+
+    static string_view __unsafe_new(const char *data, size_t size);
 
     string_view &operator=(const char *s);
 
