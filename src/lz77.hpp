@@ -39,13 +39,15 @@ private:
     }
 
 public:
-    template <size_t WIN_BYTES = 2, size_t LAB_BYTES = 1>
+    template <size_t WIN_BITS = 9, size_t LAB_BITS = 7>
     static inline void compress(const ::string_view &txt, std::ostream &out) {
-        static_assert(WIN_BYTES > LAB_BYTES, "WIN_BYTES must be greater than LAB_BYTES");
-        static_assert(LAB_BYTES > 0, "LAB_BYTES must be greater than 0");
+        static_assert(WIN_BITS > LAB_BITS, "WIN_BITS must be greater than LAB_BITS");
+        static_assert(LAB_BITS > 0, "LAB_BITS must be greater than 0");
+        static_assert((WIN_BITS + LAB_BITS) % 8 == 0, "WIN_BITS + LAB_BITS must be multiple of 8");
+        static_assert((WIN_BITS + LAB_BITS) <= sizeof(size_t) << 3, "WIN_BITS + LAB_BITS must be less than or equal to sizeof(size_t) << 3");
 
-        constexpr size_t win_len = static_cast<size_t>(1) << (WIN_BYTES << 3);
-        constexpr size_t lab_len = static_cast<size_t>(1) << (LAB_BYTES << 3);
+        constexpr size_t win_len = static_cast<size_t>(1) << WIN_BITS;
+        constexpr size_t lab_len = static_cast<size_t>(1) << LAB_BITS;
 
         const size_t n = txt.length();
 
@@ -61,12 +63,15 @@ public:
             ::string_view pat = txt(i, std::min(i + lab_len, n));
 
             std::pair<size_t, size_t> p = lz77::prefix_match(win, pat);
-
             const size_t &pos = p.first;
-            lz77::integer_encode<WIN_BYTES>(pos, out);
-
             const size_t &len = p.second;
-            lz77::integer_encode<LAB_BYTES>(len, out);
+
+            size_t integer = 0;
+            integer |= pos << LAB_BITS;
+            integer |= len;
+
+            constexpr size_t bytes = (WIN_BITS + LAB_BITS) >> 3;
+            lz77::integer_encode<bytes>(integer, out);
 
             const char &c = pat[len];
             out.write(&c, sizeof(char));
@@ -75,20 +80,27 @@ public:
         }
     }
 
-    template <size_t WIN_BYTES = 2, size_t LAB_BYTES = 1>
+    template <size_t WIN_BITS = 9, size_t LAB_BITS = 7>
     static inline ::string_view decompress(std::istream &in, ::string_view &txt) {
-        static_assert(WIN_BYTES > LAB_BYTES, "WIN_BYTES must be greater than LAB_BYTES");
-        static_assert(LAB_BYTES > 0, "LAB_BYTES must be greater than 0");
+        constexpr size_t bits = sizeof(size_t) << 3;
 
-        constexpr size_t win_len = static_cast<size_t>(1) << (WIN_BYTES << 3);
-        constexpr size_t lab_len = static_cast<size_t>(1) << (LAB_BYTES << 3);
+        static_assert(WIN_BITS > LAB_BITS, "WIN_BITS must be greater than LAB_BITS");
+        static_assert(LAB_BITS > 0, "LAB_BITS must be greater than 0");
+        static_assert((WIN_BITS + LAB_BITS) % 8 == 0, "WIN_BITS + LAB_BITS must be multiple of 8");
+        static_assert((WIN_BITS + LAB_BITS) <= bits, "WIN_BITS + LAB_BITS must be less than or equal to sizeof(size_t) << 3");
+
+        constexpr size_t win_len = static_cast<size_t>(1) << WIN_BITS;
+        constexpr size_t lab_len = static_cast<size_t>(1) << LAB_BITS;
 
         char *_txt = const_cast<char *>(txt.begin());
         const size_t n = txt.length();
 
         for (size_t i = 0; i < n;) {
-            size_t pos = lz77::integer_decode<WIN_BYTES>(in);
-            size_t len = lz77::integer_decode<LAB_BYTES>(in);
+            constexpr size_t bytes = (WIN_BITS + LAB_BITS) >> 3;
+            size_t integer = lz77::integer_decode<bytes>(in);
+
+            size_t pos = integer >> LAB_BITS;
+            size_t len = integer & (static_cast<size_t>(-1) >> (bits - LAB_BITS));
             const char c = static_cast<const char>(in.get());
 
             if (len > 0 && pos + i + lab_len < win_len) {
