@@ -105,7 +105,7 @@ inline void dc3::init_suffix_array(std::vector<size_t> &sa, const ::string_view 
     std::vector<size_t> a(n + 3);
     size_t i = 0;
     for (auto &c : txt)
-        a[i++] = static_cast<size_t>(c);
+        a[i++] = static_cast<size_t>(static_cast<unsigned char>(c));
 
     dc3::init_suffix_array(sa, a.data(), n, alphabet);
 }
