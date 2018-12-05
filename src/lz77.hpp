@@ -81,7 +81,7 @@ public:
     }
 
     template <size_t WIN_BITS = 9, size_t LAB_BITS = 7>
-    static inline ::string_view decompress(std::istream &in, ::string_view &txt) {
+    static inline void decompress(std::istream &in, ::string_view &txt) {
         constexpr size_t bits = sizeof(size_t) << 3;
 
         static_assert(WIN_BITS > LAB_BITS, "WIN_BITS must be greater than LAB_BITS");
@@ -127,8 +127,6 @@ public:
 
             i += len + 1;
         }
-
-        return txt;
     }
 };
 
