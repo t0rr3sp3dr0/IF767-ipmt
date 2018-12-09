@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "lz77.hpp"
+#include "lz78.h"
 #include "watch.h"
 
 static constexpr size_t MULTIPLIER = sizeof(size_t) / sizeof(char);
@@ -16,15 +17,15 @@ void serializer::marshal(const ::string_view &txt, const std::vector<size_t> &sa
     const size_t len = txt.length();
     output.write(reinterpret_cast<const char *>(&len), sizeof(size_t));
 
-    WATCH(lz77::compress(txt, output));
+    WATCH(lz78::compress(txt, output));
 
     WATCH(output.write(reinterpret_cast<const char *>(sa.data()), len * MULTIPLIER));
 
     ::string_view l_lcp_sv = ::string_view::__unsafe_new(reinterpret_cast<const char *>(l_lcp.data()), len * MULTIPLIER);
-    WATCH(lz77::compress(l_lcp_sv, output));
+    WATCH(lz78::compress(l_lcp_sv, output));
 
     ::string_view r_lcp_sv = ::string_view::__unsafe_new(reinterpret_cast<const char *>(r_lcp.data()), len * MULTIPLIER);
-    WATCH(lz77::compress(r_lcp_sv, output));
+    WATCH(lz78::compress(r_lcp_sv, output));
 }
 
 void serializer::marshal(const ::string_view &txt, const std::vector<size_t> &sa, const std::vector<size_t> &l_lcp, const std::vector<size_t> &r_lcp, const std::string &s) {
@@ -39,18 +40,18 @@ char *serializer::unmarshal(std::istream &input, std::vector<size_t> &sa, std::v
     char *txt = new char[len + 1];
     txt[len] = '\0';
     ::string_view txt_sv = ::string_view::__unsafe_new(txt, len);
-    WATCH(lz77::decompress(input, txt_sv));
+    WATCH(lz78::decompress(input, txt_sv));
 
     sa.resize(len);
     WATCH(input.read(reinterpret_cast<char *>(sa.data()), len * MULTIPLIER));
 
     l_lcp.resize(len);
     ::string_view l_lcp_sv = ::string_view::__unsafe_new(reinterpret_cast<char *>(l_lcp.data()), len * MULTIPLIER);
-    WATCH(lz77::decompress(input, l_lcp_sv));
+    WATCH(lz78::decompress(input, l_lcp_sv));
 
     r_lcp.resize(len);
     ::string_view r_lcp_sv = ::string_view::__unsafe_new(reinterpret_cast<char *>(r_lcp.data()), len * MULTIPLIER);
-    WATCH(lz77::decompress(input, r_lcp_sv));
+    WATCH(lz78::decompress(input, r_lcp_sv));
 
     return txt;
 }
