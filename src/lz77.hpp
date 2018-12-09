@@ -104,8 +104,8 @@ public:
             size_t len = integer & (static_cast<size_t>(-1) >> (bits - LAB_BITS));
             const char c = static_cast<const char>(in.get());
 
-            if (len > 0 && pos + i + lab_len < win_len) {
-                size_t diff = std::min(win_len - pos, len);
+            if (len > 0 && pos + i < win_len - lab_len) {
+                size_t diff = std::min(win_len - lab_len - i - pos, len);
                 std::fill(_txt + i, _txt + i + diff, '\0');
 
                 len -= diff;
