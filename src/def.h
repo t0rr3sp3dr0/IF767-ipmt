@@ -7,6 +7,7 @@
 
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #define size_t unsigned int
 
