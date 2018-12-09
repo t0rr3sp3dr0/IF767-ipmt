@@ -116,10 +116,12 @@ inline size_t suffix_array::succ(const ::string_view &txt, const ::string_view &
     ::string_view ls = txt(sa[0]);
     ::string_view rs = txt(sa[n - 1]);
 
-    if (ls > pat)
+    size_t ll = std::min(ls.length(), pat.length());
+    if (ls(0, ll) > pat(0, ll))
         return 0;
 
-    if (rs < pat)
+    size_t rl = std::min(rs.length(), pat.length());
+    if (rs(0, rl) < pat(0, rl))
         return n;
 
     size_t ls_lcp = suffix_array::lcp_bf(ls, pat);
@@ -172,6 +174,9 @@ inline size_t suffix_array::succ(const ::string_view &txt, const ::string_view &
         }
     }
 
+    if (ls_lcp > rs_lcp)
+        return l;
+
     return r;
 }
 
@@ -182,10 +187,12 @@ inline size_t suffix_array::pred(const ::string_view &txt, const ::string_view &
     ::string_view ls = txt(sa[0]);
     ::string_view rs = txt(sa[n - 1]);
 
-    if (ls > pat)
+    size_t ll = std::min(ls.length(), pat.length());
+    if (ls(0, ll) > pat(0, ll))
         return static_cast<size_t>(-1);
 
-    if (rs < pat)
+    size_t rl = std::min(rs.length(), pat.length());
+    if (rs(0, rl) < pat(0, rl))
         return n - 1;
 
     size_t ls_lcp = suffix_array::lcp_bf(ls, pat);
@@ -237,6 +244,9 @@ inline size_t suffix_array::pred(const ::string_view &txt, const ::string_view &
             ls_lcp = hs_lcp;
         }
     }
+
+    if (rs_lcp > ls_lcp)
+        return r;
 
     return l;
 }
