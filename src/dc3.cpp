@@ -100,14 +100,14 @@ void dc3::init_suffix_array(std::vector<size_t> &sa, const size_t *txt, size_t l
 inline void dc3::init_suffix_array(std::vector<size_t> &sa, const ::string_view &txt, size_t alphabet) {
     const size_t n = txt.length();
 
-    sa.resize(n);
-
     std::vector<size_t> a(n + 3);
     size_t i = 0;
     for (auto &c : txt)
-        a[i++] = static_cast<size_t>(static_cast<unsigned char>(c));
+        a[i++] = static_cast<size_t>(c - CHAR_MIN);
 
     dc3::init_suffix_array(sa, a.data(), n, alphabet);
+
+    sa.resize(n);
 }
 
 inline void dc3::invert_index(std::vector<size_t> &ret, const std::vector<size_t> &v) {
@@ -121,7 +121,7 @@ inline void dc3::invert_index(std::vector<size_t> &ret, const std::vector<size_t
 inline void dc3::init_h_lcp(std::vector<size_t> &h_lcp, const ::string_view &s, const std::vector<size_t> &sa, const std::vector<size_t> &inverse_sa) {
     const size_t n = s.length();
 
-    h_lcp.resize(n);
+    h_lcp.resize(n - 1);
 
     for (size_t i = 0, j = 0; i < n; i++, j -= j > 0) {
         size_t k = inverse_sa[i];
