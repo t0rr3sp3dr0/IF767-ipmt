@@ -33,27 +33,32 @@ inline void suffix_array::init_ranking(std::vector<size_t> &v, const std::vector
     }
 }
 
-inline void suffix_array::init_indexes(std::vector<std::vector<size_t>> &indexes, const ::string_view &s) {
+inline void suffix_array::init_inverse_sa(std::vector<size_t> &inverse_sa, const ::string_view &s) {
     const size_t n = s.length();
 
     const auto l = static_cast<size_t>(ceil(log2(n)));
-    indexes.assign(l + 1, std::vector<size_t>(n));
+
+    std::vector<std::vector<size_t>> indexes;
+    indexes.assign(2, std::vector<size_t>(n));
 
     std::vector<char> vc = std::vector<char>(s.begin(), s.end());
     suffix_array::init_ranking<char>(indexes[0], vc);
 
-    for (size_t i = 1; i < l + 1; ++i) {
+    bool b = true;
+    for (size_t i = 1; i < l + 1; ++i, b = !b) {
         size_t j = static_cast<size_t>(1) << (i - 1);
 
         std::vector<std::pair<size_t, size_t>> ranking(n);
         for (size_t k = 0; k < n; ++k)
             if (j + k >= n)
-                ranking[k] = {indexes[i - 1][k] + 1, 0};
+                ranking[k] = {indexes[!b][k] + 1, 0};
             else
-                ranking[k] = {indexes[i - 1][k] + 1, indexes[i - 1][j + k] + 1};
+                ranking[k] = {indexes[!b][k] + 1, indexes[!b][j + k] + 1};
 
-        suffix_array::init_ranking<std::pair<size_t, size_t>>(indexes[i], ranking);
+        suffix_array::init_ranking<std::pair<size_t, size_t>>(indexes[b], ranking);
     }
+
+    inverse_sa = indexes[!b];
 }
 
 inline void suffix_array::invert_index(std::vector<size_t> &ret, const std::vector<size_t> &v) {
@@ -64,41 +69,52 @@ inline void suffix_array::invert_index(std::vector<size_t> &ret, const std::vect
         ret[v[i]] = i;
 }
 
-inline size_t suffix_array::lcp(const std::vector<std::vector<size_t>> &indexes, const size_t &n, size_t start, size_t end) {
-    if (start == end)
-        return n - start;
+inline void suffix_array::init_h_lcp(std::vector<size_t> &h_lcp, const ::string_view &s, const std::vector<size_t> &sa, const std::vector<size_t> &inverse_sa) {
+    const size_t n = s.length();
 
-    size_t len = 0;
-    for (size_t k = indexes.size() - 1; k != static_cast<size_t>(-1) && start < n && end < n; --k)
-        if (indexes[k][start] == indexes[k][end]) {
-            auto inc = static_cast<size_t>(1) << k;
-            len += inc;
-            start += inc;
-            end += inc;
+    h_lcp.resize(n - 1);
+
+    for (size_t i = 0, j = 0; i < n; i++, j -= j > 0) {
+        size_t k = inverse_sa[i];
+        if (k == n - 1) {
+            j = 0;
+            continue;
         }
-    return len;
+
+        size_t l = sa[k + 1];
+        while (i + j < n && l + j < n && s[i + j] == s[l + j])
+            j++;
+
+        h_lcp[k] = j;
+    }
 }
 
-void suffix_array::_init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &sa, const std::vector<std::vector<size_t>> &indexes, const size_t &n, const size_t &l, const size_t &r) {
+inline void suffix_array::_init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &h_lcp, const size_t &l, const size_t &r) {
     if (r - l <= 1)
         return;
 
     size_t h = (l + r) / 2;
-    l_lcp[h] = suffix_array::lcp(indexes, n, sa[l], sa[h]);
-    r_lcp[h] = suffix_array::lcp(indexes, n, sa[h], sa[r]);
 
-    suffix_array::_init_lr_lcp(l_lcp, r_lcp, sa, indexes, n, l, h);
-    suffix_array::_init_lr_lcp(l_lcp, r_lcp, sa, indexes, n, h, r);
+    l_lcp[h] = static_cast<size_t>(-1);
+    for (size_t i = l; i < h; ++i)
+        l_lcp[h] = std::min(h_lcp[i], l_lcp[h]);
+
+    r_lcp[h] = static_cast<size_t>(-1);
+    for (size_t i = h; i < r; ++i)
+        r_lcp[h] = std::min(h_lcp[i], r_lcp[h]);
+
+    suffix_array::_init_lr_lcp(l_lcp, r_lcp, h_lcp, l, h);
+    suffix_array::_init_lr_lcp(l_lcp, r_lcp, h_lcp, h, r);
 }
 
-inline void suffix_array::init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &sa, const std::vector<std::vector<size_t>> &indexes, size_t n) {
+inline void suffix_array::init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &h_lcp, size_t n) {
     l_lcp.resize(n);
     r_lcp.resize(n);
 
     size_t l = 0;
     size_t r = n - 1;
 
-    suffix_array::_init_lr_lcp(l_lcp, r_lcp, sa, indexes, n, l, r);
+    suffix_array::_init_lr_lcp(l_lcp, r_lcp, h_lcp, l, r);
 }
 
 inline size_t suffix_array::lcp_bf(const ::string_view &txt, const ::string_view &pat) {
@@ -252,10 +268,15 @@ inline size_t suffix_array::pred(const ::string_view &txt, const ::string_view &
 }
 
 suffix_array::suffix_array(const string_view &txt) : free(false), txt(txt) {
-    std::vector<std::vector<size_t>> indexes;
-    WATCH(suffix_array::init_indexes(indexes, this->txt));
-    WATCH(suffix_array::invert_index(this->sa, indexes[indexes.size() - 1]));
-    WATCH(suffix_array::init_lr_lcp(this->l_lcp, this->r_lcp, this->sa, indexes, this->txt.length()));
+    std::vector<size_t> inverse_sa;
+    WATCH(suffix_array::init_inverse_sa(inverse_sa, this->txt));
+
+    WATCH(suffix_array::invert_index(this->sa, inverse_sa));
+
+    std::vector<size_t> h_lcp;
+    WATCH(suffix_array::init_h_lcp(h_lcp, this->txt, this->sa, inverse_sa));
+
+    WATCH(suffix_array::init_lr_lcp(this->l_lcp, this->r_lcp, h_lcp, this->txt.length()));
 }
 
 suffix_array::suffix_array(std::istream &in) : free(true) {

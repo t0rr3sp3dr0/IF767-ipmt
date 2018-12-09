@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
         ss << std::ifstream(argv[1]).rdbuf();
         auto txt = ss.str();
 
-        WATCH(dc3 sa(txt));
+        WATCH(suffix_array sa(txt));
 
         std::fstream output(idx, std::ios::out | std::ios::binary | std::ios::trunc);
         WATCH(sa.marshal(output));

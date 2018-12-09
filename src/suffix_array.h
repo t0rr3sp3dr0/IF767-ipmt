@@ -23,15 +23,15 @@ private:
     template <typename T>
     static void init_ranking(std::vector<size_t> &v, const std::vector<T> &ts);
 
-    static void init_indexes(std::vector<std::vector<size_t>> &indexes, const ::string_view &s);
+    static void init_inverse_sa(std::vector<size_t> &inverse_sa, const ::string_view &s);
 
     static void invert_index(std::vector<size_t> &ret, const std::vector<size_t> &v);
 
-    static size_t lcp(const std::vector<std::vector<size_t>> &indexes, const size_t &n, size_t start, size_t end);
+    static void init_h_lcp(std::vector<size_t> &h_lcp, const ::string_view &s, const std::vector<size_t> &sa, const std::vector<size_t> &inverse_sa);
 
-    static void _init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &sa, const std::vector<std::vector<size_t>> &indexes, const size_t &n, const size_t &l, const size_t &r);
+    static void _init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &h_lcp, const size_t &l, const size_t &r);
 
-    static void init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &sa, const std::vector<std::vector<size_t>> &indexes, size_t n);
+    static void init_lr_lcp(std::vector<size_t> &l_lcp, std::vector<size_t> &r_lcp, const std::vector<size_t> &h_lcp, size_t n);
 
     static size_t lcp_bf(const ::string_view &txt, const ::string_view &pat);
 
