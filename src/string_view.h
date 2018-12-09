@@ -6,6 +6,7 @@
 #define IPMT_STRING_VIEW_H
 
 
+#include <cstring>
 #include <ostream>
 #include <string>
 

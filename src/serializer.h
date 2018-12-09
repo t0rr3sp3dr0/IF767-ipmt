@@ -7,6 +7,7 @@
 
 
 #include <iostream>
+#include <vector>
 
 #include "def.h"
 #include "string_view.h"

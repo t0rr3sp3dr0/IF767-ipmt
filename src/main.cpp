@@ -15,7 +15,10 @@ int main(int argc, char *argv[]) {
 
     if (argc == 2) {
         auto idx = std::string(argv[1]) + ".idx";
-        auto txt = (std::stringstream() << std::ifstream(argv[1]).rdbuf()).str();
+
+        std::stringstream ss;
+        ss << std::ifstream(argv[1]).rdbuf();
+        auto txt = ss.str();
 
         WATCH(dc3 sa(txt));
 

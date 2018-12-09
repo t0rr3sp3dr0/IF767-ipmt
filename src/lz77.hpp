@@ -6,6 +6,7 @@
 #define IPMT_LZ77_H
 
 
+#include <climits>
 #include <fstream>
 #include <utility>
 #include <vector>

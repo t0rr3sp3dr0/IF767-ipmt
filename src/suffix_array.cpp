@@ -4,6 +4,7 @@
 
 #include "suffix_array.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include "serializer.h"

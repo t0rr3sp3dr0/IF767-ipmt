@@ -6,6 +6,7 @@
 #define IPMT_DEF_H
 
 
+#include <algorithm>
 #include <iostream>
 #define size_t unsigned int
 
