@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "lz77.hpp"
+#include "lz78.h"
 #include "watch.h"
 
 static constexpr size_t MULTIPLIER = sizeof(size_t) / sizeof(char);

@@ -9,6 +9,7 @@
 #include "dc3.h"
 #include "def.h"
 #include "lz77.hpp"
+#include "lz78.h"
 #include "serializer.h"
 #include "suffix_array.h"
 #include "watch.h"
@@ -132,12 +133,12 @@ int main(int argc, char *argv[]) {
                     break;
                 }
 
-//                case encoding_algorithm::LZ78: {
-//                    serializer::compressor = [](const ::string_view &sv, std::ostream &os) {
-//                        lz78::compress(sv, os);
-//                    };
-//                    break;
-//                }
+                case encoding_algorithm::LZ78: {
+                    serializer::compressor = [](const ::string_view &sv, std::ostream &os) {
+                        lz78::compress(sv, os);
+                    };
+                    break;
+                }
 
                 case encoding_algorithm::RAW: {
                     break;
@@ -241,12 +242,12 @@ int main(int argc, char *argv[]) {
                     break;
                 }
 
-//                case encoding_algorithm::LZ78: {
-//                    serializer::decompressor = [](std::istream &is, ::string_view &sv) {
-//                        lz78::decompress(is, sv);
-//                    };
-//                    break;
-//                }
+                case encoding_algorithm::LZ78: {
+                    serializer::decompressor = [](std::istream &is, ::string_view &sv) {
+                        lz78::decompress(is, sv);
+                    };
+                    break;
+                }
 
                 case encoding_algorithm::RAW: {
                     break;
